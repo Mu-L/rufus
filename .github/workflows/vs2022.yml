@@ -45,23 +45,32 @@ jobs:
         submodules: recursive
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v1
       with:
         msbuild-architecture: x64
 
     - name: Set ALPHA
+      shell: cmd
       id: set_alpha
       if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       run: echo "::set-output name=option::/DALPHA"
 
+    - name: GitHub Actions SUUUUUUUUUCKS
+      shell: cmd
+      id: wtf
+      run: echo "some_var=THANKS_FOR_BREAKING_SOMETHING_THAT_WAS_WORKING_FINE" >> $GITHUB_OUTPUT
+
     - name: Set BETA
+      shell: cmd
       id: set_beta
       if: ${{ startsWith(github.ref, 'refs/tags/') && contains(github.ref, 'BETA') }}
-      run: echo "::set-output name=option::/DBETA"
+      run: echo "option=/DBETA" >> $GITHUB_OUTPUT
 
     - name: Build
       shell: cmd
       run: |
+        echo "HEY, WTF: ${{ steps.wtf.outputs.some_var }}"
+        echo "ARE YOU FRIGGING KIDDING ME GITHUB??? WHERE'S MY BLOODY VARIABLE?!? ${{ steps.set_alpha.outputs.option }}"
         set ExternalCompilerOptions=${{ steps.set_alpha.outputs.option }} ${{ steps.set_beta.outputs.option }}
         msbuild ${{ env.SOLUTION_FILE_PATH }} /m /p:Configuration=${{ env.BUILD_CONFIGURATION }},Platform=${{ matrix.TARGET_PLATFORM }}
         move .\${{ matrix.TARGET_PLATFORM }}\Release\rufus.exe .\rufus_${{ matrix.TARGET_PLATFORM }}.exe
